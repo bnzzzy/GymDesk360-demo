@@ -8,6 +8,7 @@ public record StatsResponse(
         long totalGyms,
         long activeGyms,
         long totalUsers,
+        long totalMembers,
         Map<Role, Long> usersByRole
 ) {
 }

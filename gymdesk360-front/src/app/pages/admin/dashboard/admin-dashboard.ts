@@ -34,7 +34,7 @@ export class AdminDashboard implements OnInit {
             { label: 'Gimnasios', value: s?.totalGyms ?? 0, icon: 'pi pi-building' },
             { label: 'Gimnasios activos', value: s?.activeGyms ?? 0, icon: 'pi pi-check-circle' },
             { label: 'Usuarios totales', value: s?.totalUsers ?? 0, icon: 'pi pi-users' },
-            { label: 'Socios', value: s?.usersByRole.MEMBER ?? 0, icon: 'pi pi-id-card' }
+            { label: 'Socios en la plataforma', value: s?.totalMembers ?? 0, icon: 'pi pi-id-card' }
         ];
     });
 

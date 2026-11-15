@@ -10,6 +10,7 @@ import com.benz.gymdesk360.model.Gym;
 import com.benz.gymdesk360.model.User;
 import com.benz.gymdesk360.model.enums.Role;
 import com.benz.gymdesk360.repository.GymRepository;
+import com.benz.gymdesk360.repository.MemberRepository;
 import com.benz.gymdesk360.repository.RefreshTokenRepository;
 import com.benz.gymdesk360.repository.UserRepository;
 import com.benz.gymdesk360.security.AuthUser;
@@ -32,6 +33,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final GymRepository gymRepository;
+    private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final DemoGuard demoGuard;
@@ -156,7 +158,7 @@ public class UserService {
             byRole.put((Role) row[0], (Long) row[1]);
             total += (Long) row[1];
         }
-        return new StatsResponse(gymRepository.count(), gymRepository.countByActiveTrue(), total, byRole);
+        return new StatsResponse(gymRepository.count(), gymRepository.countByActiveTrue(), total, memberRepository.count(), byRole);
     }
 
     // ---------------------------------------------------------------- comunes

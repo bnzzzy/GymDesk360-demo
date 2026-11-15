@@ -42,7 +42,7 @@
                         <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-surface-100 dark:bg-surface-800 font-bold text-primary shrink-0">{{ g.name[0] }}</span>
                         <div class="min-w-0">
                             <div class="font-semibold truncate">{{ g.name }}</div>
-                            <div class="text-xs text-muted-color">{{ g.usersCount }} usuarios · desde {{ g.createdAt | date: 'mediumDate' }}</div>
+                            <div class="text-xs text-muted-color">{{ g.usersCount }} {{ g.usersCount === 1 ? 'usuario' : 'usuarios' }} · desde {{ g.createdAt | date: 'mediumDate' }}</div>
                         </div>
                     </div>
                     <p-tag [value]="g.active ? 'Activo' : 'Inactivo'" [severity]="g.active ? 'success' : 'danger'" />

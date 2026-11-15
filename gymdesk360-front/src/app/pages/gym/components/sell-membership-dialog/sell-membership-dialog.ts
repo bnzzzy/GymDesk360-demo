@@ -79,8 +79,11 @@ export class SellMembershipDialog {
         this.error.set(null);
         this.startDate.set(null);
         this.notes = '';
-        const first = this.activePlans()[0] ?? null;
-        this.selectPlan(first?.id ?? null);
+        // Propone el plan que ya tiene el socio; si no, el primer plan mensual; si no, el primero
+        const plans = this.activePlans();
+        const preferred =
+            plans.find((p) => p.name === this.member().currentPlanName) ?? plans.find((p) => p.durationUnit === 'MONTHS') ?? plans[0] ?? null;
+        this.selectPlan(preferred?.id ?? null);
     }
 
     selectPlan(id: number | null) {

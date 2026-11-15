@@ -60,6 +60,8 @@ export interface Stats {
     totalGyms: number;
     activeGyms: number;
     totalUsers: number;
+    /** Socios registrados en todos los gimnasios. */
+    totalMembers: number;
     usersByRole: Record<Role, number>;
 }
 

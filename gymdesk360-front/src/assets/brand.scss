@@ -75,3 +75,9 @@ p-select.ng-invalid.ng-touched,
 p-select.ng-invalid.ng-touched .p-select {
     border-color: var(--p-red-400);
 }
+
+/* Tarjetas dentro de una grilla: sin margen inferior (la plantilla se lo quita solo a la última
+   y esa queda más alta que sus vecinas) */
+.grid > .card {
+    margin-bottom: 0;
+}
