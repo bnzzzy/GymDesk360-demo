@@ -1,0 +1,42 @@
+.current-card {
+    border-left: 3px solid var(--gd-gold);
+}
+
+.progress-track {
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--surface-hover);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--gd-gold-gradient);
+    transition: width 0.4s ease;
+}
+
+.info-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.75rem 1rem;
+    margin: 0;
+
+    dt {
+        color: var(--text-color-secondary);
+        font-size: 0.9rem;
+    }
+
+    dd {
+        margin: 0;
+        font-weight: 500;
+    }
+}
+
+.notes {
+    padding: 0.75rem 1rem;
+    border-radius: var(--content-border-radius);
+    background: var(--surface-hover);
+    font-size: 0.9rem;
+    white-space: pre-line;
+}

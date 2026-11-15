@@ -1,0 +1,31 @@
+
+.demo-badge {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 990;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.95rem;
+    border-radius: 999px;
+    background: var(--gd-black);
+    color: #f4f4f2;
+    border: 1px solid color-mix(in srgb, var(--gd-gold), transparent 40%);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    font-size: 0.85rem;
+
+    i {
+        color: var(--gd-gold);
+    }
+
+    &:hover {
+        border-color: var(--gd-gold);
+    }
+
+    @media (max-width: 640px) {
+        span {
+            display: none;
+        }
+    }
+}

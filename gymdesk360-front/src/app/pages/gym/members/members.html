@@ -1,0 +1,110 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+        <div class="text-2xl font-bold">Socios</div>
+        <div class="text-muted-color mt-1">{{ counts()['ACTIVE'] ?? 0 }} con membresía activa.</div>
+    </div>
+    <p-button label="Nuevo socio" icon="pi pi-user-plus" styleClass="gd-btn-gold" (onClick)="openNew()" />
+</div>
+
+<div class="card">
+    <!-- Filtros -->
+    <div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+        <p-iconfield class="w-full lg:w-96">
+            <p-inputicon styleClass="pi pi-search" />
+            <input pInputText type="text" placeholder="Buscar por nombre, RUT, email o teléfono" [ngModel]="search()" (ngModelChange)="search.set($event)" class="w-full" />
+        </p-iconfield>
+
+        <div class="flex flex-wrap gap-2">
+            @for (o of statusOptions; track o.value) {
+                <button type="button" class="status-chip" [class.selected]="statusFilter() === o.value" (click)="setStatus(o.value)">
+                    {{ o.label }} <span class="chip-count">{{ counts()[o.value] ?? 0 }}</span>
+                </button>
+            }
+            @if (inactiveCount() > 0) {
+                <button type="button" class="status-chip" [class.selected]="showInactive()" (click)="toggleInactive()">
+                    Desactivados <span class="chip-count">{{ inactiveCount() }}</span>
+                </button>
+            }
+        </div>
+    </div>
+
+    <p-table [value]="filtered()" [loading]="loading()" [rows]="15" [paginator]="filtered().length > 15" dataKey="id" [rowHover]="true" sortField="lastName" [sortOrder]="1">
+        <ng-template #header>
+            <tr>
+                <th pSortableColumn="lastName">Socio <p-sortIcon field="lastName" /></th>
+                <th class="hidden md:table-cell">Contacto</th>
+                <th pSortableColumn="currentEndDate">Plan <p-sortIcon field="currentEndDate" /></th>
+                <th pSortableColumn="status">Estado <p-sortIcon field="status" /></th>
+                <th class="text-right">Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-m>
+            <tr class="cursor-pointer" (click)="open(m)">
+                <td>
+                    <div class="flex items-center gap-3">
+                        <p-avatar [label]="initials(m.fullName)" shape="circle" styleClass="gd-avatar" />
+                        <div class="min-w-0">
+                            <div class="font-semibold">{{ m.fullName }}</div>
+                            <div class="text-sm text-muted-color">{{ m.rut ? rut(m.rut) : 'Sin RUT' }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="hidden md:table-cell">
+                    <div class="text-sm">{{ m.phone ?? '—' }}</div>
+                    <div class="text-sm text-muted-color truncate max-w-56">{{ m.email ?? '' }}</div>
+                </td>
+                <td>
+                    @if (m.currentPlanName) {
+                        <div class="font-medium">{{ m.currentPlanName }}</div>
+                        <div class="text-sm text-muted-color">
+                            @switch (m.status) {
+                                @case ('UPCOMING') {
+                                    Comienza el {{ m.currentStartDate | date: 'dd/MM/yyyy' }}
+                                }
+                                @case ('EXPIRED') {
+                                    Venció el {{ m.currentEndDate | date: 'dd/MM/yyyy' }}
+                                }
+                                @default {
+                                    Hasta el {{ m.currentEndDate | date: 'dd/MM/yyyy' }}
+                                }
+                            }
+                        </div>
+                    } @else {
+                        <span class="text-muted-color">—</span>
+                    }
+                </td>
+                <td>
+                    <p-tag [value]="statusLabel(m.status)" [severity]="statusSeverity(m.status)" />
+                    @if (m.status === 'ACTIVE' && m.daysLeft !== null && m.daysLeft <= 7 && m.paidUntil === m.currentEndDate) {
+                        <div class="text-xs mt-1 text-orange-500 font-medium">
+                            {{ m.daysLeft === 0 ? 'Vence hoy' : m.daysLeft === 1 ? 'Vence mañana' : 'Vence en ' + m.daysLeft + ' días' }}
+                        </div>
+                    }
+                </td>
+                <td class="text-right whitespace-nowrap">
+                    @if (m.active) {
+                        <p-button icon="pi pi-cart-plus" [rounded]="true" [text]="true" severity="secondary" [pTooltip]="m.status === 'ACTIVE' || m.status === 'UPCOMING' ? 'Renovar' : 'Vender plan'" tooltipPosition="top" (onClick)="openSell(m, $event)" />
+                    }
+                    <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Editar" tooltipPosition="top" (onClick)="openEdit(m, $event)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="5" class="text-center py-12 text-muted-color">
+                    @if (members().length === 0 && !loading()) {
+                        <i class="pi pi-id-card text-4xl mb-3 block"></i>
+                        Aún no hay socios. Registra el primero con <span class="font-semibold">Nuevo socio</span>.
+                    } @else {
+                        Ningún socio coincide con el filtro.
+                    }
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<app-member-form-dialog [(visible)]="formVisible" [member]="editing()" (saved)="onSaved($event)" />
+@if (selling(); as s) {
+    <app-sell-membership-dialog [(visible)]="sellVisible" [member]="s" [plans]="plans()" (sold)="load()" />
+}

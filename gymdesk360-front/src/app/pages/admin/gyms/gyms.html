@@ -1,0 +1,93 @@
+<div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+            <div class="text-2xl font-bold m-0">Gimnasios</div>
+            <div class="text-muted-color mt-1 mb-0">Clientes de la plataforma y su estado.</div>
+        </div>
+        <p-button label="Nuevo gimnasio" icon="pi pi-plus" styleClass="gd-btn-gold" (onClick)="openNew()" />
+    </div>
+
+    <p-table #dt [value]="gyms()" [loading]="loading()" [rows]="10" [paginator]="gyms().length > 10" [globalFilterFields]="['name', 'slug']" dataKey="id" [rowHover]="true" responsiveLayout="scroll">
+        <ng-template #caption>
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" placeholder="Buscar por nombre o slug" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="w-full sm:w-80" />
+            </p-iconfield>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                <th pSortableColumn="name">Nombre <p-sortIcon field="name" /></th>
+                <th>Slug</th>
+                <th pSortableColumn="usersCount" class="text-center">Usuarios <p-sortIcon field="usersCount" /></th>
+                <th>Estado</th>
+                <th pSortableColumn="createdAt">Creado <p-sortIcon field="createdAt" /></th>
+                <th class="text-right">Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-g>
+            <tr>
+                <td class="font-semibold">{{ g.name }}</td>
+                <td><code class="text-sm text-muted-color">{{ g.slug }}</code></td>
+                <td class="text-center">{{ g.usersCount }}</td>
+                <td><p-tag [value]="g.active ? 'Activo' : 'Inactivo'" [severity]="g.active ? 'success' : 'danger'" /></td>
+                <td class="text-muted-color">{{ g.createdAt | date: 'mediumDate' }}</td>
+                <td class="text-right whitespace-nowrap">
+                    <p-button icon="pi pi-users" [rounded]="true" [text]="true" severity="secondary" pTooltip="Ver usuarios" tooltipPosition="top" routerLink="/admin/usuarios" [queryParams]="{ gymId: g.id }" />
+                    <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Editar" tooltipPosition="top" (onClick)="openEdit(g)" />
+                    <p-button [icon]="g.active ? 'pi pi-ban' : 'pi pi-check'" [rounded]="true" [text]="true" [severity]="g.active ? 'warn' : 'success'" [pTooltip]="g.active ? 'Desactivar' : 'Activar'" tooltipPosition="top" (onClick)="toggleActive(g)" />
+                    <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmDelete(g)" />
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="6" class="text-center py-10 text-muted-color">No hay gimnasios.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog [(visible)]="dialogVisible" [header]="editing() ? 'Editar gimnasio' : 'Nuevo gimnasio'" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '94vw' }" [draggable]="false">
+    <form #f="ngForm" (ngSubmit)="save(f)" id="gymForm" novalidate class="flex flex-col gap-5 pt-2">
+        <div class="flex flex-col gap-2">
+            <label for="name" class="font-medium">Nombre</label>
+            <input pInputText id="name" name="name" [(ngModel)]="form.name" (ngModelChange)="onNameChange($event)" #nameCtrl="ngModel" required maxlength="150" placeholder="Ej: Iron Box Ñuñoa" fluid />
+            <app-field-error [control]="nameCtrl" [form]="f" />
+        </div>
+        <div class="flex flex-col gap-2">
+            <label for="slug" class="font-medium">Slug</label>
+            <input pInputText id="slug" name="slug" [(ngModel)]="form.slug" (ngModelChange)="slugTouched = true" #slugCtrl="ngModel" required maxlength="80" pattern="^[a-z0-9]+(-[a-z0-9]+)*$" fluid />
+            <app-field-error [control]="slugCtrl" [form]="f" patternMessage="Solo minúsculas, números y guiones (ej: iron-box-nunoa)" />
+            <small class="text-muted-color">Identificador único. Se completa solo a partir del nombre.</small>
+        </div>
+
+        @if (!editing()) {
+            <div class="border-t border-surface-200 dark:border-surface-800 pt-5">
+                <div class="font-semibold mb-4 flex items-center gap-2"><i class="pi pi-user text-primary"></i> Administrador del gimnasio</div>
+                <div class="flex flex-col gap-5">
+                    <div class="flex flex-col gap-2">
+                        <label for="adminFullName" class="font-medium">Nombre completo</label>
+                        <input pInputText id="adminFullName" name="adminFullName" [(ngModel)]="form.adminFullName" #adminNameCtrl="ngModel" required maxlength="150" fluid />
+                        <app-field-error [control]="adminNameCtrl" [form]="f" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="adminEmail" class="font-medium">Email</label>
+                        <input pInputText id="adminEmail" name="adminEmail" type="email" [(ngModel)]="form.adminEmail" #adminEmailCtrl="ngModel" required email fluid />
+                        <app-field-error [control]="adminEmailCtrl" [form]="f" />
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="adminPassword" class="font-medium">Contraseña inicial</label>
+                        <p-password inputId="adminPassword" name="adminPassword" [(ngModel)]="form.adminPassword" #adminPwdCtrl="ngModel" [toggleMask]="true" [feedback]="false" [fluid]="true" required [minlength]="8" [maxlength]="72" autocomplete="new-password" />
+                        <app-field-error [control]="adminPwdCtrl" [form]="f" />
+                        <small class="text-muted-color">Con esta contraseña entrará el administrador. Mínimo 8 caracteres.</small>
+                    </div>
+                </div>
+            </div>
+        }
+        <button type="submit" class="hidden" aria-hidden="true" tabindex="-1"></button>
+    </form>
+    <ng-template #footer>
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button (onClick)="f.onSubmit($event)" [label]="editing() ? 'Guardar cambios' : 'Crear gimnasio'" icon="pi pi-check" styleClass="gd-btn-gold" [loading]="saving()" />
+    </ng-template>
+</p-dialog>

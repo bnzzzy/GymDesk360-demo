@@ -1,0 +1,132 @@
+<div class="card">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+            <div class="text-2xl font-bold m-0">Usuarios</div>
+            <div class="text-muted-color mt-1 mb-0">Cuentas de todos los gimnasios.</div>
+        </div>
+        <p-button label="Nuevo usuario" icon="pi pi-plus" styleClass="gd-btn-gold" (onClick)="openNew()" />
+    </div>
+
+    <p-table #dt [value]="users()" [loading]="loading()" [rows]="10" [paginator]="users().length > 10" [globalFilterFields]="['fullName', 'email', 'gymName']" dataKey="id" [rowHover]="true">
+        <ng-template #caption>
+            <div class="flex flex-wrap gap-3">
+                <p-iconfield>
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" placeholder="Buscar por nombre, email o gimnasio" (input)="dt.filterGlobal($any($event.target).value, 'contains')" class="w-full sm:w-80" />
+                </p-iconfield>
+                <p-select [options]="gyms()" optionLabel="name" optionValue="id" [ngModel]="gymFilter()" (ngModelChange)="onGymFilter($event)" placeholder="Todos los gimnasios" [showClear]="true" [filter]="gyms().length > 8" styleClass="w-full sm:w-64" />
+            </div>
+        </ng-template>
+        <ng-template #header>
+            <tr>
+                <th pSortableColumn="fullName">Usuario <p-sortIcon field="fullName" /></th>
+                <th pSortableColumn="role">Rol <p-sortIcon field="role" /></th>
+                <th pSortableColumn="gymName">Gimnasio <p-sortIcon field="gymName" /></th>
+                <th>Estado</th>
+                <th class="text-right">Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template #body let-u>
+            <tr>
+                <td>
+                    <div class="flex items-center gap-3">
+                        <p-avatar [label]="initials(u.fullName)" shape="circle" styleClass="gd-avatar" />
+                        <div class="min-w-0">
+                            <div class="font-semibold">
+                                {{ u.fullName }}
+                                @if (u.id === me()) {
+                                    <span class="text-xs text-primary font-medium ml-1">(tú)</span>
+                                }
+                            </div>
+                            <div class="text-sm text-muted-color">{{ u.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><p-tag [value]="roleLabel(u.role)" [severity]="roleSeverity(u.role)" /></td>
+                <td>{{ u.gymName ?? '—' }}</td>
+                <td><p-tag [value]="u.enabled ? 'Activo' : 'Inactivo'" [severity]="u.enabled ? 'success' : 'danger'" /></td>
+                <td class="text-right whitespace-nowrap">
+                    <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Editar" tooltipPosition="top" (onClick)="openEdit(u)" />
+                    <p-button icon="pi pi-key" [rounded]="true" [text]="true" severity="secondary" pTooltip="Restablecer contraseña" tooltipPosition="top" (onClick)="openPassword(u)" />
+                    @if (u.id !== me()) {
+                        <p-button [icon]="u.enabled ? 'pi pi-ban' : 'pi pi-check'" [rounded]="true" [text]="true" [severity]="u.enabled ? 'warn' : 'success'" [pTooltip]="u.enabled ? 'Desactivar' : 'Activar'" tooltipPosition="top" (onClick)="toggleEnabled(u)" />
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmDelete(u)" />
+                    }
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="5" class="text-center py-10 text-muted-color">No hay usuarios.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Crear / editar -->
+<p-dialog [(visible)]="dialogVisible" [header]="editing() ? 'Editar usuario' : 'Nuevo usuario'" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '94vw' }" [draggable]="false">
+    <form #f="ngForm" (ngSubmit)="save(f)" id="userForm" novalidate class="flex flex-col gap-5 pt-2">
+        <div class="flex flex-col gap-2">
+            <label for="fullName" class="font-medium">Nombre completo</label>
+            <input pInputText id="fullName" name="fullName" [(ngModel)]="form.fullName" #fullNameCtrl="ngModel" required maxlength="150" fluid />
+            <app-field-error [control]="fullNameCtrl" [form]="f" />
+        </div>
+        <div class="flex flex-col gap-2">
+            <label for="email" class="font-medium">Email</label>
+            <input pInputText id="email" name="email" type="email" [(ngModel)]="form.email" #emailCtrl="ngModel" required email fluid />
+            <app-field-error [control]="emailCtrl" [form]="f" />
+        </div>
+        @if (!editing()) {
+            <div class="flex flex-col gap-2">
+                <label for="password" class="font-medium">Contraseña inicial</label>
+                <p-password inputId="password" name="password" [(ngModel)]="form.password" #pwdCtrl="ngModel" [toggleMask]="true" [feedback]="false" [fluid]="true" required [minlength]="8" [maxlength]="72" autocomplete="new-password" />
+                <app-field-error [control]="pwdCtrl" [form]="f" />
+                <small class="text-muted-color">Mínimo 8 caracteres.</small>
+            </div>
+        }
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-2">
+                <label for="role" class="font-medium">Rol</label>
+                <p-select inputId="role" name="role" [options]="roleOptions" optionLabel="label" optionValue="value" [(ngModel)]="form.role" #roleCtrl="ngModel" [disabled]="editingSelf()" required fluid appendTo="body" />
+                <app-field-error [control]="roleCtrl" [form]="f" />
+            </div>
+            @if (form.role !== 'SUPER_ADMIN') {
+                <div class="flex flex-col gap-2">
+                    <label for="gym" class="font-medium">Gimnasio</label>
+                    <p-select inputId="gym" name="gymId" [options]="gyms()" optionLabel="name" optionValue="id" [(ngModel)]="form.gymId" #gymCtrl="ngModel" placeholder="Selecciona" [filter]="gyms().length > 8" emptyMessage="No hay gimnasios creados" required fluid appendTo="body" />
+                    <app-field-error [control]="gymCtrl" [form]="f" />
+                </div>
+            }
+        </div>
+        @if (form.role !== 'SUPER_ADMIN' && gyms().length === 0) {
+            <p-message severity="warn" styleClass="w-full">
+                <span>Primero crea un gimnasio: cada usuario (salvo el super admin) pertenece a uno.
+                    <a routerLink="/admin/gimnasios" [queryParams]="{ nuevo: 1 }" class="font-semibold underline">Crear gimnasio</a></span>
+            </p-message>
+        }
+        @if (editing() && !editingSelf()) {
+            <small class="text-muted-color"><i class="pi pi-info-circle mr-1"></i>Si cambias el rol o el gimnasio, el usuario deberá volver a iniciar sesión.</small>
+        }
+        <button type="submit" class="hidden" aria-hidden="true" tabindex="-1"></button>
+    </form>
+    <ng-template #footer>
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button (onClick)="f.onSubmit($event)" [label]="editing() ? 'Guardar cambios' : 'Crear usuario'" icon="pi pi-check" styleClass="gd-btn-gold" [loading]="saving()" />
+    </ng-template>
+</p-dialog>
+
+<!-- Restablecer contraseña -->
+<p-dialog [(visible)]="passwordVisible" header="Restablecer contraseña" [modal]="true" [style]="{ width: '26rem' }" [breakpoints]="{ '640px': '94vw' }" [draggable]="false">
+    <form #pf="ngForm" (ngSubmit)="savePassword(pf)" id="pwdForm" novalidate class="flex flex-col gap-4 pt-2">
+        <div class="m-0 text-muted-color">
+            Nueva contraseña para <span class="font-semibold text-surface-900 dark:text-surface-0">{{ passwordUser()?.fullName }}</span>. Se cerrarán todas sus sesiones.
+        </div>
+        <p-password inputId="newPassword" name="newPassword" [(ngModel)]="newPassword" #newPwdCtrl="ngModel" [toggleMask]="true" [fluid]="true" required [minlength]="8" [maxlength]="72" autocomplete="new-password" />
+        <app-field-error [control]="newPwdCtrl" [form]="pf" />
+        <button type="submit" class="hidden" aria-hidden="true" tabindex="-1"></button>
+    </form>
+    <ng-template #footer>
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="passwordVisible = false" />
+        <p-button (onClick)="pf.onSubmit($event)" label="Restablecer" icon="pi pi-key" styleClass="gd-btn-gold" [loading]="saving()" />
+    </ng-template>
+</p-dialog>

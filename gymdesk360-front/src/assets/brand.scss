@@ -1,0 +1,77 @@
+/* ------------------------------------------------------------------
+   GymDesk360 · identidad "Money" (negro + oro)
+   ------------------------------------------------------------------ */
+
+:root {
+    --gd-gold: #d4af37;
+    --gd-gold-light: #f6e27a;
+    --gd-gold-dark: #a67c1f;
+    --gd-black: #0b0b0a;
+    --gd-gold-gradient: linear-gradient(135deg, var(--gd-gold-light) 0%, var(--gd-gold) 50%, var(--gd-gold-dark) 100%);
+}
+
+/* Texto dorado degradado (wordmark "360", títulos destacados) */
+.gd-gold-text {
+    background: var(--gd-gold-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Avatar con iniciales en oro */
+.gd-avatar.p-avatar {
+    background: var(--gd-gold-gradient);
+    color: var(--gd-black);
+    font-weight: 700;
+}
+
+/* Sidebar y topbar sobre negro en modo oscuro */
+:root[class*='app-dark'] {
+    .layout-sidebar,
+    .layout-topbar {
+        background: var(--p-surface-900);
+        border-color: var(--p-surface-800);
+    }
+}
+
+/* Indicador lateral dorado en el ítem activo del menú */
+.layout-menu ul a.active-route {
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        bottom: 20%;
+        width: 3px;
+        border-radius: 3px;
+        background: var(--gd-gold-gradient);
+    }
+}
+
+/* Botón principal con degradado dorado */
+.p-button.gd-btn-gold:not(.p-button-text):not(.p-button-outlined) {
+    background: var(--gd-gold-gradient);
+    border: 0;
+    color: var(--gd-black);
+    font-weight: 700;
+
+    &:not(:disabled):hover {
+        filter: brightness(1.07);
+        background: var(--gd-gold-gradient);
+        color: var(--gd-black);
+    }
+}
+
+/* Campos inválidos: borde rojo cuando el usuario ya los tocó o intentó enviar */
+input.p-inputtext.ng-invalid.ng-touched,
+textarea.p-textarea.ng-invalid.ng-touched,
+input.p-inputtext.gd-invalid,
+p-password.ng-invalid.ng-touched .p-inputtext,
+p-inputnumber.ng-invalid.ng-touched .p-inputtext,
+p-datepicker.ng-invalid.ng-touched .p-inputtext,
+p-select.ng-invalid.ng-touched,
+p-select.ng-invalid.ng-touched .p-select {
+    border-color: var(--p-red-400);
+}

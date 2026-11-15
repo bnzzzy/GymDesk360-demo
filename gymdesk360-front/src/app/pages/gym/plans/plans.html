@@ -1,0 +1,110 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+        <div class="text-2xl font-bold">Planes</div>
+        <div class="text-muted-color mt-1">
+            {{ activeCount() }} {{ activeCount() === 1 ? 'plan activo' : 'planes activos' }} para vender.
+            @if (!canManage()) {
+                <span>Solo el administrador puede modificarlos.</span>
+            }
+        </div>
+    </div>
+    @if (canManage()) {
+        <p-button label="Nuevo plan" icon="pi pi-plus" styleClass="gd-btn-gold" (onClick)="openNew()" />
+    }
+</div>
+
+@if (loading()) {
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @for (i of [1, 2, 3]; track i) {
+            <div class="card mb-0"><p-skeleton height="9rem" /></div>
+        }
+    </div>
+} @else if (plans().length === 0) {
+    <div class="card text-center py-16">
+        <i class="pi pi-tags text-5xl text-primary"></i>
+        <div class="text-xl font-semibold mt-4 mb-2">Aún no hay planes</div>
+        <div class="text-muted-color mb-6">Crea los planes que vende tu gimnasio: mensual, trimestral, pase diario…</div>
+        @if (canManage()) {
+            <p-button label="Crear el primer plan" icon="pi pi-plus" styleClass="gd-btn-gold" (onClick)="openNew()" />
+        }
+    </div>
+} @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @for (p of plans(); track p.id) {
+            <div class="card mb-0 plan-card" [class.plan-inactive]="!p.active">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="text-lg font-semibold truncate">{{ p.name }}</div>
+                        <div class="text-sm text-muted-color mt-1"><i class="pi pi-clock text-xs mr-1"></i>{{ duration(p) }}</div>
+                    </div>
+                    @if (!p.active) {
+                        <p-tag value="Inactivo" severity="secondary" />
+                    }
+                </div>
+
+                <div class="plan-price mt-5">{{ p.price | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</div>
+
+                <div class="text-sm text-muted-color mt-3 plan-description">{{ p.description || 'Sin descripción' }}</div>
+
+                @if (canManage()) {
+                    <div class="flex justify-end gap-1 mt-4 pt-3 border-t border-surface-200 dark:border-surface-800">
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Editar" tooltipPosition="top" (onClick)="openEdit(p)" />
+                        <p-button [icon]="p.active ? 'pi pi-eye-slash' : 'pi pi-eye'" [rounded]="true" [text]="true" [severity]="p.active ? 'warn' : 'success'" [pTooltip]="p.active ? 'Desactivar (dejar de vender)' : 'Activar'" tooltipPosition="top" (onClick)="toggleActive(p)" />
+                        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmDelete(p)" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<p-dialog [(visible)]="dialogVisible" [header]="editing() ? 'Editar plan' : 'Nuevo plan'" [modal]="true" [style]="{ width: '32rem' }" [breakpoints]="{ '640px': '94vw' }" [draggable]="false">
+    <form #f="ngForm" (ngSubmit)="save(f)" id="planForm" novalidate class="flex flex-col gap-5 pt-2">
+        @if (!editing()) {
+            <div class="flex flex-col gap-2">
+                <span class="font-medium">Atajos</span>
+                <div class="flex flex-wrap gap-2">
+                    @for (pr of presets; track pr.label) {
+                        <p-button [label]="pr.label" size="small" [outlined]="true" severity="secondary" (onClick)="applyPreset(pr)" />
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="flex flex-col gap-2">
+            <label for="planName" class="font-medium">Nombre</label>
+            <input pInputText id="planName" name="name" [(ngModel)]="form.name" #nameCtrl="ngModel" required maxlength="100" placeholder="Ej: Mensual libre" fluid />
+            <app-field-error [control]="nameCtrl" [form]="f" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-2">
+                <label for="planPrice" class="font-medium">Precio</label>
+                <p-inputnumber inputId="planPrice" name="price" [(ngModel)]="form.price" #priceCtrl="ngModel" mode="currency" currency="CLP" locale="es-CL" [min]="0" [max]="100000000" [required]="true" [fluid]="true" />
+                <app-field-error [control]="priceCtrl" [form]="f" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="planDuration" class="font-medium">Duración</label>
+                <div class="flex gap-2">
+                    <p-inputnumber inputId="planDuration" name="durationValue" [(ngModel)]="form.durationValue" #durCtrl="ngModel" [min]="1" [max]="730" [showButtons]="false" [required]="true" styleClass="w-20" inputStyleClass="w-20" />
+                    <p-selectbutton name="durationUnit" [options]="unitOptions" [(ngModel)]="form.durationUnit" optionLabel="label" optionValue="value" [allowEmpty]="false" />
+                </div>
+                <app-field-error [control]="durCtrl" [form]="f" />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label for="planDescription" class="font-medium">Descripción <span class="text-muted-color font-normal">(opcional)</span></label>
+            <textarea pTextarea id="planDescription" name="description" [(ngModel)]="form.description" rows="3" maxlength="500" placeholder="Ej: Acceso ilimitado a sala de máquinas y clases grupales" fluid></textarea>
+        </div>
+
+        @if (editing()) {
+            <small class="text-muted-color"><i class="pi pi-info-circle mr-1"></i>Los cambios no afectan a las membresías ya vendidas.</small>
+        }
+        <button type="submit" class="hidden" aria-hidden="true" tabindex="-1"></button>
+    </form>
+    <ng-template #footer>
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="dialogVisible = false" />
+        <p-button (onClick)="f.onSubmit($event)" [label]="editing() ? 'Guardar cambios' : 'Crear plan'" icon="pi pi-check" styleClass="gd-btn-gold" [loading]="saving()" />
+    </ng-template>
+</p-dialog>

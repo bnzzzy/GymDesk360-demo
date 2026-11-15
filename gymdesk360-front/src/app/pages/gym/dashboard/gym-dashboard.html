@@ -1,0 +1,79 @@
+<div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+    <div>
+        <div class="text-2xl font-bold">Hola, {{ firstName() }}</div>
+        <div class="text-muted-color mt-1">
+            {{ data()?.gymName }} · resumen de {{ month | date: 'MMMM yyyy' }}
+        </div>
+    </div>
+    <div class="flex gap-2">
+        <p-button label="Nuevo socio" icon="pi pi-user-plus" styleClass="gd-btn-gold" routerLink="/socios" [queryParams]="{ nuevo: 1 }" />
+    </div>
+</div>
+
+<!-- Métricas -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+    @for (c of cards(); track c.label) {
+        <a class="card gd-stat mb-0 block" [class.clickable]="c.link" [routerLink]="c.link" [queryParams]="c.query">
+            @if (loading()) {
+                <p-skeleton width="2.75rem" height="2.75rem" borderRadius="0.75rem" />
+                <p-skeleton width="60%" height="2rem" styleClass="mt-4" />
+            } @else {
+                <span class="gd-stat-icon"><i [class]="c.icon"></i></span>
+                <div class="text-3xl font-bold mt-4 text-surface-900 dark:text-surface-0">
+                    {{ c.value ?? (c.money | currency: 'CLP' : 'symbol-narrow' : '1.0-0') }}
+                </div>
+                <div class="text-sm mt-1 text-surface-900 dark:text-surface-0 font-medium">{{ c.label }}</div>
+                <div class="text-xs text-muted-color mt-1">{{ c.hint }}</div>
+            }
+        </a>
+    }
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+    <!-- Por vencer -->
+    <div class="card mb-0 xl:col-span-3">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <div class="text-lg font-semibold">Por vencer esta semana</div>
+                <div class="text-sm text-muted-color">Socios sin renovación pagada. Buen momento para contactarlos.</div>
+            </div>
+        </div>
+        @if (!loading() && (data()?.expiringSoon ?? []).length === 0) {
+            <div class="text-center py-10 text-muted-color">
+                <i class="pi pi-check-circle text-4xl mb-3 block text-green-500"></i>
+                Nadie vence en los próximos 7 días.
+            </div>
+        }
+        <ul class="list-none p-0 m-0">
+            @for (m of data()?.expiringSoon ?? []; track m.id) {
+                <li>
+                    <a [routerLink]="['/socios', m.id]" class="expiring-row">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <p-avatar [label]="initials(m.fullName)" shape="circle" styleClass="gd-avatar shrink-0" />
+                            <div class="min-w-0">
+                                <div class="font-semibold truncate text-surface-900 dark:text-surface-0">{{ m.fullName }}</div>
+                                <div class="text-xs text-muted-color">{{ m.currentPlanName }} · {{ m.phone ?? 'sin teléfono' }}</div>
+                            </div>
+                        </div>
+                        <span class="expiring-badge" [class.urgent]="(m.daysLeft ?? 9) <= 1">{{ daysLabel(m.daysLeft) }}</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="card mb-0 xl:col-span-2">
+        <div class="text-lg font-semibold mb-4">Accesos rápidos</div>
+        <div class="flex flex-col gap-3">
+            <a routerLink="/socios" class="quick-link"><i class="pi pi-id-card"></i><span>Ver todos los socios</span><i class="pi pi-angle-right ml-auto"></i></a>
+            <a routerLink="/socios" [queryParams]="{ estado: 'EXPIRED' }" class="quick-link"><i class="pi pi-refresh"></i><span>Socios vencidos para renovar</span><i class="pi pi-angle-right ml-auto"></i></a>
+            <a routerLink="/planes" class="quick-link">
+                <i class="pi pi-tags"></i><span>{{ isAdmin() ? 'Administrar planes' : 'Ver planes' }} ({{ data()?.activePlans ?? 0 }} activos)</span><i class="pi pi-angle-right ml-auto"></i>
+            </a>
+        </div>
+        @if (!loading() && data()?.activePlans === 0) {
+            <div class="mt-4 text-sm text-orange-500"><i class="pi pi-exclamation-triangle mr-1"></i>No hay planes activos: crea uno para poder vender membresías.</div>
+        }
+    </div>
+</div>

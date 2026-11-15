@@ -1,0 +1,83 @@
+<div class="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-surface-0 dark:bg-surface-950">
+    <!-- Panel de marca -->
+    <aside class="gd-brand-panel hidden lg:flex flex-col justify-between p-12 text-surface-0">
+        <app-logo [size]="44" [wordmark]="true" [inverse]="true" />
+
+        <div class="max-w-md">
+            <div class="text-5xl font-extrabold leading-tight tracking-tight text-surface-0">
+                Tu gimnasio,<br />
+                <span class="gd-gold-text">bajo control.</span>
+            </div>
+            <div class="text-lg text-surface-300 mt-6 mb-10 leading-relaxed">Socios, planes, accesos y pagos en un solo lugar. Para gimnasios, boxes y estudios.</div>
+            <ul class="list-none p-0 m-0 flex flex-col gap-4 text-surface-200">
+                @for (f of features; track f.text) {
+                    <li class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 border border-white/10">
+                            <i [class]="f.icon + ' text-[var(--gd-gold)]'"></i>
+                        </span>
+                        {{ f.text }}
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <span class="text-sm text-surface-400">© {{ year }} GymDesk360</span>
+    </aside>
+
+    <!-- Formulario -->
+    <main class="flex items-center justify-center px-6 py-12 min-w-0">
+        <div class="w-full max-w-sm min-w-0">
+            <div class="lg:hidden flex justify-center mb-10">
+                <app-logo [size]="44" [wordmark]="true" />
+            </div>
+
+            @if (demo.enabled()) {
+                <div class="demo-panel mb-8">
+                    <div class="flex items-center gap-2 font-semibold text-surface-900 dark:text-surface-0">
+                        <i class="pi pi-play-circle text-primary"></i> Explora la demo
+                    </div>
+                    <div class="text-sm text-muted-color mt-1 mb-4">Entra con un clic. Los datos son ficticios y se reinician cada noche.</div>
+                    <div class="flex flex-col gap-2">
+                        @for (a of demoAccounts; track a.account) {
+                            <button type="button" class="demo-account" [disabled]="loading()" (click)="demoLogin(a.account)">
+                                <i [class]="a.icon"></i>
+                                <span class="flex flex-col items-start">
+                                    <span class="font-semibold">{{ a.label }}</span>
+                                    <span class="text-xs text-muted-color">{{ a.hint }}</span>
+                                </span>
+                                <i class="pi pi-arrow-right ml-auto text-xs"></i>
+                            </button>
+                        }
+                    </div>
+                    <a [href]="demo.repoUrl" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm text-primary mt-4"><i class="pi pi-github"></i> Ver el código en GitHub</a>
+                </div>
+                <div class="text-sm text-muted-color mb-4 text-center">— o con email y contraseña —</div>
+            } @else {
+                <div class="text-3xl font-bold text-surface-900 dark:text-surface-0">Inicia sesión</div>
+                <div class="text-muted-color mt-2 mb-8">Ingresa con tu cuenta para continuar.</div>
+            }
+
+            @if (error()) {
+                <p-message severity="error" [text]="error()!" styleClass="mb-6 w-full" />
+            }
+
+            <form (ngSubmit)="submit(f)" #f="ngForm" class="flex flex-col gap-5" novalidate>
+                <div class="flex flex-col gap-2">
+                    <label for="email" class="font-medium text-surface-900 dark:text-surface-0">Email</label>
+                    <input pInputText id="email" name="email" type="email" autocomplete="username" placeholder="tu@gimnasio.cl" [(ngModel)]="email" #emailCtrl="ngModel" required email fluid />
+                    <app-field-error [control]="emailCtrl" [form]="f" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="password" class="font-medium text-surface-900 dark:text-surface-0">Contraseña</label>
+                    <p-password inputId="password" name="password" autocomplete="current-password" placeholder="••••••••" [(ngModel)]="password" #pwdCtrl="ngModel" [toggleMask]="true" [feedback]="false" [fluid]="true" required />
+                    <app-field-error [control]="pwdCtrl" [form]="f" />
+                </div>
+
+                <p-button type="submit" label="Ingresar" icon="pi pi-arrow-right" iconPos="right" styleClass="w-full gd-btn-gold mt-2" [loading]="loading()" />
+            </form>
+
+            <div class="text-center text-sm text-muted-color mt-10">¿Problemas para entrar? Contacta al administrador de tu gimnasio.</div>
+        </div>
+    </main>
+</div>

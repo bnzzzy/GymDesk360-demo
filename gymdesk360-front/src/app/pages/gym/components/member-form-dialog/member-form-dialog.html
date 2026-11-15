@@ -1,0 +1,62 @@
+<p-dialog [(visible)]="visible" [header]="member() ? 'Editar socio' : 'Nuevo socio'" [modal]="true" [style]="{ width: '40rem' }" [breakpoints]="{ '720px': '96vw' }" [draggable]="false">
+    <form #f="ngForm" (ngSubmit)="save(f)" id="memberForm" novalidate class="flex flex-col gap-5 pt-2">
+        @if (error()) {
+            <p-message severity="error" [text]="error()!" styleClass="w-full" />
+        }
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-2">
+                <label for="firstName" class="font-medium">Nombres</label>
+                <input pInputText id="firstName" name="firstName" [(ngModel)]="form.firstName" #firstCtrl="ngModel" required maxlength="80" autocomplete="off" fluid />
+                <app-field-error [control]="firstCtrl" [form]="f" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="lastName" class="font-medium">Apellidos</label>
+                <input pInputText id="lastName" name="lastName" [(ngModel)]="form.lastName" #lastCtrl="ngModel" required maxlength="80" autocomplete="off" fluid />
+                <app-field-error [control]="lastCtrl" [form]="f" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="rut" class="font-medium">RUT <span class="text-muted-color font-normal">(opcional)</span></label>
+                <input pInputText id="rut" name="rut" [(ngModel)]="form.rut" (blur)="onRutBlur()" placeholder="12.345.678-5" maxlength="14" #rutCtrl="ngModel" autocomplete="off" [class.gd-invalid]="rutInvalid && (rutCtrl.touched || f.submitted)" fluid />
+                <app-field-error [control]="rutCtrl" [form]="f" [customError]="rutInvalid ? 'RUT inválido: revisa el dígito verificador' : null" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="birthDate" class="font-medium">Fecha de nacimiento <span class="text-muted-color font-normal">(opcional)</span></label>
+                <p-datepicker inputId="birthDate" name="birthDate" [(ngModel)]="form.birthDate" dateFormat="dd/mm/yy" [maxDate]="maxBirthDate" [showIcon]="true" [showButtonBar]="true" placeholder="dd/mm/aaaa" appendTo="body" [fluid]="true" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="email" class="font-medium">Email</label>
+                <input pInputText id="email" name="email" type="email" [(ngModel)]="form.email" #emailCtrl="ngModel" email maxlength="255" autocomplete="off" fluid />
+                <app-field-error [control]="emailCtrl" [form]="f" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label for="phone" class="font-medium">Teléfono</label>
+                <input pInputText id="phone" name="phone" type="tel" [(ngModel)]="form.phone" maxlength="30" placeholder="+56 9 1234 5678" autocomplete="off" fluid />
+            </div>
+        </div>
+
+        <div class="border-t border-surface-200 dark:border-surface-800 pt-5">
+            <div class="font-semibold mb-4 flex items-center gap-2"><i class="pi pi-heart text-primary"></i> Contacto de emergencia</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="flex flex-col gap-2">
+                    <label for="emName" class="font-medium">Nombre</label>
+                    <input pInputText id="emName" name="emergencyContactName" [(ngModel)]="form.emergencyContactName" maxlength="150" autocomplete="off" fluid />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="emPhone" class="font-medium">Teléfono</label>
+                    <input pInputText id="emPhone" name="emergencyContactPhone" type="tel" [(ngModel)]="form.emergencyContactPhone" maxlength="30" autocomplete="off" fluid />
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label for="notes" class="font-medium">Notas <span class="text-muted-color font-normal">(lesiones, objetivos, observaciones)</span></label>
+            <textarea pTextarea id="notes" name="notes" [(ngModel)]="form.notes" rows="3" maxlength="1000" fluid></textarea>
+        </div>
+        <button type="submit" class="hidden" aria-hidden="true" tabindex="-1"></button>
+    </form>
+    <ng-template #footer>
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="visible.set(false)" />
+        <p-button (onClick)="f.onSubmit($event)" [label]="member() ? 'Guardar cambios' : 'Registrar socio'" icon="pi pi-check" styleClass="gd-btn-gold" [loading]="saving()" />
+    </ng-template>
+</p-dialog>

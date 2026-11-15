@@ -1,0 +1,14 @@
+<div class="card">
+    <div class="text-2xl font-bold m-0">Hola, {{ auth.user()?.fullName }} 👋</div>
+    <div class="text-muted-color mt-2 mb-0">
+        {{ roleLabel }}
+        @if (auth.user()?.gymName) {
+            · <span class="font-semibold text-primary">{{ auth.user()?.gymName }}</span>
+        }
+    </div>
+</div>
+<div class="card text-center py-16">
+    <i class="pi pi-wrench text-5xl text-primary"></i>
+    <div class="text-xl font-semibold mt-4 mb-2">Estamos preparando tu panel</div>
+    <div class="text-muted-color m-0">Pronto vas a poder gestionar socios, planes y accesos desde aquí.</div>
+</div>

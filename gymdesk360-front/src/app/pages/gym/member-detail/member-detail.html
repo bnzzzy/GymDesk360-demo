@@ -1,0 +1,155 @@
+<a routerLink="/socios" class="inline-flex items-center gap-2 text-muted-color hover:text-primary mb-4 text-sm"><i class="pi pi-arrow-left text-xs"></i> Volver a socios</a>
+
+@if (loading()) {
+    <div class="card"><p-skeleton height="6rem" /></div>
+    <div class="card"><p-skeleton height="12rem" /></div>
+} @else if (member(); as m) {
+    <!-- Encabezado -->
+    <div class="card">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div class="flex items-center gap-4 min-w-0">
+                <p-avatar [label]="initials(m.fullName)" shape="circle" size="xlarge" styleClass="gd-avatar" />
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-2xl font-bold">{{ m.fullName }}</span>
+                        <p-tag [value]="statusLabel(m.status)" [severity]="statusSeverity(m.status)" />
+                        @if (!m.active) {
+                            <p-tag value="Ficha desactivada" severity="secondary" />
+                        }
+                    </div>
+                    <div class="text-muted-color mt-1">{{ m.rut ? rut(m.rut) : 'Sin RUT' }} · Socio desde {{ m.createdAt | date: 'MMMM yyyy' }}</div>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                @if (m.active) {
+                    <p-button [label]="m.status === 'ACTIVE' || m.status === 'UPCOMING' ? 'Renovar' : 'Vender plan'" icon="pi pi-cart-plus" styleClass="gd-btn-gold" (onClick)="sellVisible = true" />
+                }
+                <p-button label="Editar" icon="pi pi-pencil" severity="secondary" [outlined]="true" (onClick)="formVisible = true" />
+                <p-button [icon]="m.active ? 'pi pi-ban' : 'pi pi-check'" severity="secondary" [outlined]="true" [pTooltip]="m.active ? 'Desactivar ficha' : 'Reactivar ficha'" tooltipPosition="top" (onClick)="toggleActive()" />
+                @if (isAdmin()) {
+                    <p-button icon="pi pi-trash" severity="danger" [outlined]="true" pTooltip="Eliminar" tooltipPosition="top" (onClick)="confirmDelete()" />
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- Membresía actual -->
+        <div class="card mb-0 xl:col-span-2 current-card">
+            <div class="text-lg font-semibold mb-4">Membresía actual</div>
+            @if (m.currentPlanName) {
+                <div class="flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                        <div class="text-3xl font-bold">{{ m.currentPlanName }}</div>
+                        <div class="text-muted-color mt-1">{{ m.currentStartDate | date: 'dd/MM/yyyy' }} → {{ m.currentEndDate | date: 'dd/MM/yyyy' }}</div>
+                    </div>
+                    <div class="text-right">
+                        @switch (m.status) {
+                            @case ('ACTIVE') {
+                                <div class="text-4xl font-extrabold gd-gold-text leading-none">{{ m.daysLeft }}</div>
+                                <div class="text-sm text-muted-color mt-1">{{ m.daysLeft === 1 ? 'día restante' : 'días restantes' }}</div>
+                            }
+                            @case ('UPCOMING') {
+                                <div class="text-sm text-muted-color">Comienza el</div>
+                                <div class="text-xl font-bold">{{ m.currentStartDate | date: 'dd/MM/yyyy' }}</div>
+                            }
+                            @case ('EXPIRED') {
+                                <div class="text-sm text-muted-color">Venció el</div>
+                                <div class="text-xl font-bold text-red-500">{{ m.currentEndDate | date: 'dd/MM/yyyy' }}</div>
+                            }
+                        }
+                    </div>
+                </div>
+                @if (progress() !== null) {
+                    <div class="progress-track mt-5"><div class="progress-fill" [style.width.%]="progress()"></div></div>
+                }
+                @if (m.paidUntil && m.paidUntil !== m.currentEndDate) {
+                    <div class="text-sm mt-4 text-primary"><i class="pi pi-check-circle text-xs mr-1"></i>Tiene pagado hasta el {{ m.paidUntil | date: 'dd/MM/yyyy' }}</div>
+                }
+            } @else {
+                <div class="text-center py-6 text-muted-color">
+                    <i class="pi pi-ticket text-4xl mb-3 block"></i>
+                    Este socio aún no tiene membresías.
+                </div>
+            }
+        </div>
+
+        <!-- Datos -->
+        <div class="card mb-0">
+            <div class="text-lg font-semibold mb-4">Datos</div>
+            <dl class="info-list">
+                <dt>Teléfono</dt>
+                <dd>
+                    @if (m.phone) {
+                        <a [href]="'tel:' + m.phone" class="text-primary">{{ m.phone }}</a>
+                    } @else {
+                        —
+                    }
+                </dd>
+                <dt>Email</dt>
+                <dd class="break-all">
+                    @if (m.email) {
+                        <a [href]="'mailto:' + m.email" class="text-primary">{{ m.email }}</a>
+                    } @else {
+                        —
+                    }
+                </dd>
+                <dt>Nacimiento</dt>
+                <dd>{{ m.birthDate ? (m.birthDate | date: 'dd/MM/yyyy') + ' (' + age() + ' años)' : '—' }}</dd>
+                <dt>Emergencia</dt>
+                <dd>{{ m.emergencyContactName || '—' }}{{ m.emergencyContactPhone ? ' · ' + m.emergencyContactPhone : '' }}</dd>
+            </dl>
+            @if (m.notes) {
+                <div class="notes mt-4"><i class="pi pi-info-circle mr-2 text-primary"></i>{{ m.notes }}</div>
+            }
+        </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="card mt-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="text-lg font-semibold">Historial de membresías</div>
+            @if (memberships().length) {
+                <div class="text-sm text-muted-color">Total pagado: <span class="font-semibold text-surface-900 dark:text-surface-0">{{ totalPaid() | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</span></div>
+            }
+        </div>
+        <p-table [value]="memberships()" dataKey="id">
+            <ng-template #header>
+                <tr>
+                    <th>Plan</th>
+                    <th>Período</th>
+                    <th class="text-right">Pagado</th>
+                    <th>Estado</th>
+                    <th class="hidden md:table-cell">Nota</th>
+                    @if (isAdmin()) {
+                        <th></th>
+                    }
+                </tr>
+            </ng-template>
+            <ng-template #body let-ms>
+                <tr [class.opacity-50]="ms.status === 'CANCELLED'">
+                    <td class="font-medium">{{ ms.planName }}</td>
+                    <td class="whitespace-nowrap">{{ ms.startDate | date: 'dd/MM/yy' }} → {{ ms.endDate | date: 'dd/MM/yy' }}</td>
+                    <td class="text-right" [class.line-through]="ms.status === 'CANCELLED'">{{ ms.pricePaid | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+                    <td><p-tag [value]="statusLabel(ms.status)" [severity]="statusSeverity(ms.status)" /></td>
+                    <td class="hidden md:table-cell text-sm text-muted-color">{{ ms.notes ?? '' }}</td>
+                    @if (isAdmin()) {
+                        <td class="text-right">
+                            @if (ms.status !== 'CANCELLED') {
+                                <p-button icon="pi pi-times-circle" [rounded]="true" [text]="true" severity="danger" pTooltip="Anular" tooltipPosition="left" (onClick)="confirmCancel(ms)" />
+                            }
+                        </td>
+                    }
+                </tr>
+            </ng-template>
+            <ng-template #emptymessage>
+                <tr>
+                    <td [attr.colspan]="isAdmin() ? 6 : 5" class="text-center py-8 text-muted-color">Sin membresías registradas.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <app-member-form-dialog [(visible)]="formVisible" [member]="m" (saved)="reload()" />
+    <app-sell-membership-dialog [(visible)]="sellVisible" [member]="m" [plans]="plans()" (sold)="reload()" />
+}

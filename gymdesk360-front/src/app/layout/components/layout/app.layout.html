@@ -1,0 +1,18 @@
+<div class="layout-wrapper" [ngClass]="containerClass()">
+        <app-topbar></app-topbar>
+        <app-sidebar></app-sidebar>
+        <div class="layout-main-container">
+            <div class="layout-main">
+                <router-outlet></router-outlet>
+            </div>
+            <app-footer></app-footer>
+        </div>
+        <div class="layout-mask"></div>
+        @if (demo.enabled()) {
+            <a class="demo-badge" [href]="demo.repoUrl" target="_blank" rel="noopener" title="Ver el código en GitHub">
+                <i class="pi pi-play-circle"></i>
+                <span><strong>Demo</strong> · datos ficticios, se reinician cada noche</span>
+                <i class="pi pi-github"></i>
+            </a>
+        }
+    </div> 

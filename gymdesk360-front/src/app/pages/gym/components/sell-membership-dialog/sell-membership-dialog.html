@@ -1,0 +1,62 @@
+<p-dialog [(visible)]="visible" header="Vender plan" [modal]="true" [style]="{ width: '34rem' }" [breakpoints]="{ '640px': '96vw' }" [draggable]="false">
+    <div class="flex flex-col gap-5 pt-2">
+        <div class="text-muted-color">
+            Socio: <span class="font-semibold text-surface-900 dark:text-surface-0">{{ member().fullName }}</span>
+        </div>
+
+        @if (error()) {
+            <p-message severity="error" [text]="error()!" styleClass="w-full" />
+        }
+
+        @if (activePlans().length === 0) {
+            <p-message severity="warn" text="No hay planes activos. Crea o activa un plan en la sección Planes." styleClass="w-full" />
+        } @else {
+            <div class="flex flex-col gap-2">
+                <label for="sellPlan" class="font-medium">Plan</label>
+                <p-select inputId="sellPlan" [options]="activePlans()" optionLabel="name" optionValue="id" [ngModel]="planId()" (ngModelChange)="selectPlan($event)" appendTo="body" [fluid]="true">
+                    <ng-template #item let-p>
+                        <div class="flex justify-between w-full gap-4">
+                            <span>{{ p.name }} <span class="text-muted-color text-sm">· {{ planLabel(p) }}</span></span>
+                            <span class="font-semibold">{{ p.price | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</span>
+                        </div>
+                    </ng-template>
+                </p-select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="flex flex-col gap-2">
+                    <label for="sellStart" class="font-medium">Inicio</label>
+                    <p-datepicker inputId="sellStart" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" dateFormat="dd/mm/yy" [minDate]="minStart" [showIcon]="true" [showButtonBar]="true" [placeholder]="(suggestedStart() | date: 'dd/MM/yyyy') ?? ''" appendTo="body" [fluid]="true" />
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="sellPrice" class="font-medium">Precio cobrado</label>
+                    <p-inputnumber inputId="sellPrice" [ngModel]="price()" (ngModelChange)="price.set($event)" mode="currency" currency="CLP" locale="es-CL" [min]="0" [fluid]="true" />
+                </div>
+            </div>
+
+            @if (selectedPlan(); as p) {
+                <div class="sell-summary">
+                    <div class="flex items-center gap-2 font-semibold">
+                        <i class="pi pi-calendar text-primary"></i>
+                        {{ effectiveStart() | date: 'dd/MM/yyyy' }} → {{ endDate() | date: 'dd/MM/yyyy' }}
+                    </div>
+                    @if (isRenewal()) {
+                        <div class="text-sm text-muted-color mt-2"><i class="pi pi-refresh text-xs mr-1"></i>Renovación: comienza cuando termina su plan actual.</div>
+                    }
+                    @if (discount() > 0) {
+                        <div class="text-sm mt-2 text-primary"><i class="pi pi-tag text-xs mr-1"></i>Descuento de {{ discount() | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }} sobre {{ p.price | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</div>
+                    }
+                </div>
+            }
+
+            <div class="flex flex-col gap-2">
+                <label for="sellNotes" class="font-medium">Nota <span class="text-muted-color font-normal">(opcional)</span></label>
+                <input pInputText id="sellNotes" [(ngModel)]="notes" maxlength="500" placeholder="Ej: pagó con transferencia" fluid />
+            </div>
+        }
+    </div>
+    <ng-template #footer>
+        <p-button label="Cancelar" [text]="true" severity="secondary" (onClick)="visible.set(false)" />
+        <p-button label="Registrar venta" icon="pi pi-check" styleClass="gd-btn-gold" [loading]="saving()" [disabled]="activePlans().length === 0" (onClick)="save()" />
+    </ng-template>
+</p-dialog>

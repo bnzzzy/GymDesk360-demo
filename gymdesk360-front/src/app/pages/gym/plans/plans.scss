@@ -1,0 +1,30 @@
+.plan-card {
+    display: flex;
+    flex-direction: column;
+    border-top: 3px solid var(--gd-gold);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.plan-inactive {
+    opacity: 0.6;
+    border-top-color: var(--surface-border);
+}
+
+.plan-price {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+}
+
+.plan-description {
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

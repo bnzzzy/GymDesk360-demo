@@ -1,0 +1,8 @@
+{
+    "/api": {
+        "target": "https://api-demo-gymdesk.benzprojects.site",
+        "secure": true,
+        "changeOrigin": true,
+        "logLevel": "warn"
+    }
+}

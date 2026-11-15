@@ -1,0 +1,26 @@
+<span class="inline-flex items-center gap-3 select-none">
+    <svg [attr.width]="size()" [attr.height]="size()" viewBox="0 0 64 64" role="img" aria-label="GymDesk360">
+        <defs>
+            <linearGradient [attr.id]="gid" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#F6E27A" />
+                <stop offset=".5" stop-color="#D4AF37" />
+                <stop offset="1" stop-color="#A67C1F" />
+            </linearGradient>
+        </defs>
+        @if (badge()) {
+            <rect width="64" height="64" rx="14" fill="#0B0B0A" />
+        }
+        <path d="M44.2 11.9A24 24 0 1 0 56 32" fill="none" [attr.stroke]="fill" stroke-width="5" stroke-linecap="round" />
+        <path d="M56 21.5 61.5 33h-11z" [attr.fill]="fill" />
+        <rect x="21" y="30.25" width="22" height="3.5" rx="1.75" [attr.fill]="fill" />
+        <rect x="17.5" y="23" width="5.5" height="18" rx="2" [attr.fill]="fill" />
+        <rect x="41" y="23" width="5.5" height="18" rx="2" [attr.fill]="fill" />
+        <rect x="13.5" y="26.5" width="4" height="11" rx="1.5" [attr.fill]="fill" />
+        <rect x="46.5" y="26.5" width="4" height="11" rx="1.5" [attr.fill]="fill" />
+    </svg>
+    @if (wordmark()) {
+        <span class="font-extrabold tracking-tight leading-none" [style.font-size.px]="size() * 0.55">
+            <span [class]="inverse() ? 'text-surface-0' : 'text-surface-900 dark:text-surface-0'">GymDesk</span><span class="gd-gold-text">360</span>
+        </span>
+    }
+</span>

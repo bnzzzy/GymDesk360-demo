@@ -1,0 +1,17 @@
+/* Tarjetas de métricas */
+.gd-stat {
+    position: relative;
+    overflow: hidden;
+
+    .gd-stat-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        border-radius: 0.75rem;
+        background: color-mix(in srgb, var(--gd-gold), transparent 85%);
+        color: var(--primary-color);
+        font-size: 1.25rem;
+    }
+}

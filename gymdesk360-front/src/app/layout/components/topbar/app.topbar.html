@@ -1,0 +1,27 @@
+<div class="layout-topbar">
+       <div class="layout-topbar-logo-container">
+           <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()" aria-label="Menú">
+               <i class="pi pi-bars"></i>
+           </button>
+           <a class="layout-topbar-logo" routerLink="/" aria-label="Inicio">
+               <app-logo [size]="34" [wordmark]="true" />
+           </a>
+       </div>
+
+       <div class="layout-topbar-actions">
+           <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()" [attr.aria-label]="layoutService.isDarkTheme() ? 'Modo claro' : 'Modo oscuro'">
+               <i class="pi" [class.pi-sun]="layoutService.isDarkTheme()" [class.pi-moon]="!layoutService.isDarkTheme()"></i>
+           </button>
+
+           <button type="button" class="flex items-center gap-3 rounded-full pl-1 pr-3 py-1 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors cursor-pointer" (click)="userMenu.toggle($event)">
+               <p-avatar [label]="initials()" shape="circle" styleClass="gd-avatar" />
+               <span class="hidden sm:flex flex-col items-start leading-tight">
+                   <span class="text-sm font-semibold text-surface-900 dark:text-surface-0">{{ auth.user()?.fullName }}</span>
+                   <span class="text-xs text-muted-color">{{ roleLabel() }}</span>
+               </span>
+               <i class="pi pi-angle-down text-muted-color text-xs"></i>
+           </button>
+           <p-menu #userMenu [model]="menuItems()" [popup]="true" appendTo="body" />
+       </div>
+   </div>
+   <app-change-password-dialog [(visible)]="passwordDialog" />
